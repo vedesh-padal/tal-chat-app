@@ -1,4 +1,4 @@
-import { errorHandler } "../middlewares/error.middlewares"
+import { errorHandler } from "../middlewares/error.middlewares"
 
 /**
  * @description Common Error class to throw an error from anywhere.
