@@ -269,4 +269,230 @@ const resendEmailVerification = asyncHandler(async (req, res) => {
 });
 
 
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  const incomingRefreshToken = 
+    req.cookies.refreshToken || req.body.refreshToken;
 
+  if (!incomingRefreshToken)  {
+    throw new ApiError(401, "Unauthorized request");
+  }
+
+  try {
+    const decodedToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+
+    const user = await User.findById(decodedToken?._id);
+    if (!user)  {
+      throw new ApiError(401, "Invalid refresh token");
+    }
+
+    // check if incoming refresh token is same as the refresh token attached in the user document
+    // This shows that the refresh token is used or not
+    // Once it is used, we are replacing it with new refresh token below
+    if (incomingRefreshToken !== user?.refreshToken)  {
+      // If token is valid but is used already
+      throw new ApiError(401, "Refresh token is expired or used");
+    }
+
+    const options = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    }
+
+    const { accessToken, refreshToken: newRefreshToken } = 
+      await generateAccessAndRefreshTokens(user._id);
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", newRefreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          { accessToken, refreshToken: newRefreshToken },
+          "Access token refreshed"
+        )
+      );
+  } catch (error) {
+    throw new ApiError(401, error?.message || "Invalid refresh token");
+  }
+
+});
+
+const forgotPasswordRequest = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  // Get email from the client and check if user exists
+  const user = await User.findOne({ email });
+
+  if (!user)  {
+    throw new ApiError(404, "User does not exists", []);
+  }
+
+  // Generate a temporary token
+  const { unHashedToken, hashedToken, tokenExpiry } = 
+    user.generateTemporaryToken();  // generate password reset credentials
+  
+    user.forgotPasswordToken = hashedToken;
+    user.forgotPasswordExpiry = tokenExpiry;
+    await user.save({ validateBeforeSave: false });
+
+  await sendEmail({
+    email: user?.email,
+    subject: "Password reset request",
+    mailgenContent: forgotPasswordMailgenContent(
+      user.username,
+      // NOTE: THIS SHOULD BE LINK OF THE FRONTEND PAGE responsible to request password reset
+      `${process.env.FORGOT_PASSWORD_REDIRECT_URL}/${unHashedToken}`
+    ),
+  });
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        {},
+        "Password reset mail has been sent to your mail ID"
+      )
+    );
+});
+
+
+const resetForgottenPassword = asyncHandler(async (req, res) => {
+  const { resetToken } = req.params;
+  const { newPassword } = req.body;
+
+  let hashedToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+  
+  // see if user with hash similar to resetToken exists
+  // if yes, then check if token expiry is greater than current date
+  const user = await User.findOne({
+    forgotPasswordToken: hashedToken,
+    forgotPasswordExpiry: { $gt: Date.now() },
+  });
+
+  if (!user)  {
+    throw new ApiError(401, "Token is invalid or expired");
+  }
+
+  user.forgotPasswordToken = undefined;
+  user.forgotPasswordExpiry = undefined;
+
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password reset successfully"));
+});
+
+
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  const user = await User.findById(req.user?._id);
+
+  // check the old password
+  const isPasswordValid = await user.isPasswordCorrect(oldPassword);
+
+  if (!isPasswordValid) {
+    throw new ApiError(400, "Invalid old password")
+  }
+
+  // assigning the new password in plain text, because
+  // there is a pre save method attached to the user schema which automatically hashes the password whenever added/modified
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password changed successfully"));
+
+});
+
+
+const assignRole = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const { role } = req.body;
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(404, "User does not exist");
+  }
+  user.role = role;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Role changed for the user"));
+});
+
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  return res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "Current user fetched successfully"));
+});
+
+
+// IF IN FUTURE SOCIAL LOGINS are present logic to handle that here
+
+
+const updateUserAvatar = asyncHandler(async (req, res) => {
+  // check if user has uploaded an avatar
+  if (!req.file?.filename)  {
+    throw new ApiError(400, "Avatar image is required");
+  }
+
+  // get avatar file system url and local path
+  const avatarUrl = getStaticFilePath(req, req.file?.filename);
+  const avatarLocalPath = getLocalPath(req.file?.filename);
+
+  const user = await User.findById(req.user._id);
+
+  let updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        // set the newly uploaded avatar
+        avatar: {
+          url: avatarUrl,
+          localPath: avatarLocalPath,
+        }
+      },
+    },
+    { new: true }
+  ).select(
+    "-password -refreshToken -emailVerificationToken -emailVerificationExpiry"
+  );
+
+  // remove the old avatar
+  removeLocalFile(user.avatar.localPath);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedUser, "Avatar updated successfully"));
+
+});
+
+
+export {
+  assignRole,
+  changeCurrentPassword,
+  forgotPasswordRequest,
+  getCurrentUser,
+  loginUser,
+  logoutUser,
+  refreshAccessToken,
+  registerUser,
+  resendEmailVerification,
+  resetForgottenPassword,
+  updateUserAvatar,
+  verifyEmail,
+};
