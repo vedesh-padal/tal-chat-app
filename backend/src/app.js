@@ -104,6 +104,9 @@ import { errorHandler } from "./middlewares/error.middlewares.js"
 import healthcheckRouter from "./routes/healcheck.routes.js"
 
 import userRouter from "./routes/auth/user.routes.js";
+import chatRouter from "./routes/chat.routes.js"
+import messageRouter from "./routes/message.routes.js";
+
 
 
 // healthcheck
@@ -111,6 +114,8 @@ app.use("/api/v1/healthcheck", healthcheckRouter);
 
 app.use("/api/v1/users", userRouter);
 
+app.use("/api/v1/chats", chatRouter);
+app.use("/api/v1/messages", messageRouter);
 
 app.use(errorHandler);
 
