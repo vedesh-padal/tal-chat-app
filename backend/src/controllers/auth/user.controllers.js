@@ -18,7 +18,7 @@ import {
   forgotPasswordMailgenContent,
   sendEmail
 } from "../../utils/mail.js";
-import { userLoginSchema } from "../../validators/auth/user.validators";
+// import { userLoginSchema } from "../../validators/auth/user.validators";
 
 
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -165,7 +165,7 @@ const loginUser = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        { user: loggedInUser, accessToken, refreshToken }, // // send access and refresh token in response if client decides to save them by themselves
+        { user: loggedInUser, accessToken, refreshToken }, // send access and refresh token in response if client decides to save them by themselves
         "User logged in successfully"
       )
     );
@@ -180,7 +180,7 @@ const logoutUser = asyncHandler(async (req, res) => {
       },
     },
     { new: true }
-);
+  );
 
   const options = {
     httpOnly: true,

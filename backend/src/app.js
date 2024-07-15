@@ -6,6 +6,7 @@ import session from "express-session";
 
 import { createServer } from "http";
 import path from "path";
+import requestIp from "request-ip";
 import { Server } from "socket.io";
 import { DB_NAME } from "../constants.js";
 import { dbInstance } from "./db/index.js";
@@ -55,9 +56,9 @@ app.use(
   })
 );
 
-// This middleware function is responsible for retrieving the client's IP address from the incoming HTTP request and attaching it to the req object.
-app.use(requestIp.mw());
+app.use(requestIp.mw());  // to obtain the client's IP and attach it to req.clientIp
 
+// rate limiter to avoid misuse of service and avoid cost spikes
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5000,  // limiting each IP for 5000 requests
@@ -81,22 +82,36 @@ app.use(limiter);
 
 app.use(express.json({ limit: "16kb" }))
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
-app.use(express.static("public"));  // to configure static file to save images locally
+app.use(express.static("public"));  // to configure static file to save images, pdfs locally
 app.use(cookieParser());
 
 // required for passport
-app.use(
-  session({
-    secret: process.env.EXPRESS_SESSION_SECRET,
-    resave: true,
-    saveUninitialized: true,
-  })
-);
+// app.use(
+//   session({
+//     secret: process.env.EXPRESS_SESSION_SECRET,
+//     resave: true,
+//     saveUninitialized: true,
+//   })
+// );
 
-// session secret
-app.use(passport.initialize());
+// // DOUBTFUL  
+// // passport session management if needed 
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 // api routes
 import { errorHandler } from "./middlewares/error.middlewares.js"
 import healthcheckRouter from "./routes/healcheck.routes.js"
 
+import userRouter from "./routes/auth/user.routes.js";
+
+
+// healthcheck
+app.use("/api/v1/healthcheck", healthcheckRouter);
+
+app.use("/api/v1/users", userRouter);
+
+
+app.use(errorHandler);
+
+export { httpServer };

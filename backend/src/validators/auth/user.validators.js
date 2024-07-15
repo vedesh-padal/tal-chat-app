@@ -61,7 +61,11 @@ const userResetForgottenPasswordSchema = z.object({
 
 // User assign role schema
 const userAssignRoleSchema = z.object({
-  role: z.enum(AvailableUserRoles).optional()
+  // role: z.enum(AvailableUserRoles).optional()
+  role: z
+    .string()
+    .optional()
+    .refine((value) => value === undefined || AvailableUserRoles.includes(value), "Invalid user role")
 });
 
 export {

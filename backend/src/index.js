@@ -16,3 +16,11 @@ const startServer = () => {
     console.log("⚙️  Server is running on port: " + process.env.PORT);
   });
 }
+
+
+try {
+  await connectDB();
+  startServer();
+} catch (error) {
+  console.log("MongoDB connect error: ", error);
+}
