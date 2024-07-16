@@ -15,7 +15,7 @@ const chatSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "ChatMessage"
     },
-    pariticipants: [
+    participants: [
       {
         type: Schema.Types.ObjectId,
         ref: "User"
