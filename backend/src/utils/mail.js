@@ -22,7 +22,7 @@ const sendEmail = async (options) => {
   const emailHtml = mailGenerator.generate(options.mailgenContent);
 
   const mail = {
-    from: "noreply@touchalife.org",
+    from: "Acme <onboarding@resend.dev>",
     to: options.email,
     subject: options.subject,
     html: emailHtml
