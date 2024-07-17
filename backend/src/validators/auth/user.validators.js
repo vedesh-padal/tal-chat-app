@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AvailableUserRoles } from "../../../constants";
+import { AvailableUserRoles } from "../../constants.js";
 
 // more strict password schema if requried:
 /*

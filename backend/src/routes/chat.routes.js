@@ -5,8 +5,8 @@ import {
   getAllChats,
   searchAvailableUsers
 } from "../controllers/chat.controllers.js";
-import { verifyJWT } from "../middlewares/auth.middlewares";
-import { mongoIdPathVariableSchema } from "../validators/mongodb.validators";
+import { verifyJWT } from "../middlewares/auth.middlewares.js";
+import { mongoIdPathVariableSchema } from "../validators/mongodb.validators.js";
 import { validate } from "../validators/validate.js";
 
 const router = Router();

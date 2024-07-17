@@ -9,7 +9,7 @@ import {
   USER_TEMPORARY_TOKEN_EXPIRY,
   UserLoginType,
   UserRolesEnum
-} from "../../../constants.js"
+} from "../../constants.js"
 
 const userSchema = new Schema(
   {

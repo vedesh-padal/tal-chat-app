@@ -1,11 +1,11 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken"
-import { UserLoginType, UserRolesEnum } from "../../../constants";
+import { UserLoginType, UserRolesEnum } from "../../constants.js";
 
-import { User } from "../../models/auth/user.models";
-import { ApiError } from "../../utils/ApiError";
-import { ApiResponse } from "../../utils/ApiResponse";
-import { asyncHandler } from "../../utils/asyncHandler";
+import { User } from "../../models/auth/user.models.js";
+import { ApiError } from "../../utils/ApiError.js";
+import { ApiResponse } from "../../utils/ApiResponse.js";
+import { asyncHandler } from "../../utils/asyncHandler.js";
 
 import {
   getLocalPath,
@@ -18,7 +18,7 @@ import {
   forgotPasswordMailgenContent,
   sendEmail
 } from "../../utils/mail.js";
-// import { userLoginSchema } from "../../validators/auth/user.validators";
+// import { userLoginSchema } from "../../validators/auth/user.validators.js";
 
 
 const generateAccessAndRefreshTokens = async (userId) => {

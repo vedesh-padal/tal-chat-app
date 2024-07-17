@@ -1,6 +1,6 @@
 import { Router } from "express";
 // import passport from "passport";   // for Social / OAuth Logins in future
-import { UserRolesEnum } from "../../../constants";
+import { UserRolesEnum } from "../../constants.js";
 
 import {
   assignRole,

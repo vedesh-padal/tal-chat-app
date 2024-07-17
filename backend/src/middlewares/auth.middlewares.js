@@ -1,8 +1,8 @@
-import { AvailableUserRoles } from "../../constants";
-import { User } from "../models/auth/user.models";
-import { ApiError } from "../utils/ApiError";
-import { asyncHandler } from "../utils/asyncHandler";
 import jwt from "jsonwebtoken";
+import { AvailableUserRoles } from "../constants.js";
+import { User } from "../models/auth/user.models.js";
+import { ApiError } from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const verifyJWT = asyncHandler(async (req, res, next) => {
   const token = 

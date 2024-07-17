@@ -4,10 +4,10 @@ import {
   getAllMessages,
   sendMessage
 } from "../controllers/message.controllers.js";
-import { verifyJWT } from "../middlewares/auth.middlewares";
+import { verifyJWT } from "../middlewares/auth.middlewares.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { sendMessageSchema } from "../validators/message.validators.js";
-import { mongoIdPathVariableSchema } from "../validators/mongodb.validators";
+import { mongoIdPathVariableSchema } from "../validators/mongodb.validators.js";
 import { validate } from "../validators/validate.js";
 
 

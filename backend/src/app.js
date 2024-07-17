@@ -7,14 +7,15 @@ import session from "express-session";
 import { createServer } from "http";
 import path from "path";
 import requestIp from "request-ip";
+import { fileURLToPath } from "url";
 import { Server } from "socket.io";
-import { DB_NAME } from "../constants.js";
+
+import { DB_NAME } from "./constants.js";
 import { dbInstance } from "./db/index.js";
 import { initializeSocketIO } from "./socket/index.js"; // yet to complete implementation
 
 import { ApiError } from "./utils/ApiError.js"
 import { ApiResponse } from "./utils/ApiResponse.js"
-import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,10 +39,12 @@ const io = new Server(httpServer, {
   pingTimeout: 60000,
   cors: {
     origin: process.env.CORS_ORIGIN,
-    credentials: true
+    credentials: true,   // to allow the server to send and receive cookies with cross-origin requests
   }
 });
 
+// This allows you to access the Socket.IO instance from any part of your Express application by calling req.app.get("io").
+// Using set and get methods avoids the need to use global variables to share the Socket.IO instance.
 // using set method to mount the `io` instance on the app to avoid usage of `global`
 app.set("io", io);
 
