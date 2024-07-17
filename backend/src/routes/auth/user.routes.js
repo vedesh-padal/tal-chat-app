@@ -27,7 +27,7 @@ import {
   userRegisterSchema,
   userResetForgottenPasswordSchema
 } from "../../validators/auth/user.validators.js"
-import { validate } from "../../validators/validate.js";
+import { validate_params, validate_body } from "../../validators/validate.js";
 
 // multer middleware, mongodb validator
 import {
@@ -47,19 +47,19 @@ import { mongoIdPathVariableSchema } from "../../validators/mongodb.validators.j
 const router = Router();
 
 // unsecure routes
-router.route("/register").post(validate(userRegisterSchema), registerUser);
-router.route("/login").post(validate(userLoginSchema), loginUser);
+router.route("/register").post(validate_body(userRegisterSchema), registerUser);
+router.route("/login").post(validate_body(userLoginSchema), loginUser);
 router.route("/refresh-token").post(refreshAccessToken);
 router.route("/verify-email/:verificationToken").get(verifyEmail);
 
 router
   .route("/forgot-password")
-  .post(validate(userForgotPasswordSchema), forgotPasswordRequest);
+  .post(validate_body(userForgotPasswordSchema), forgotPasswordRequest);
 
 router
   .route("/reset-password/:resetToken")
   .post(
-    validate(userResetForgottenPasswordSchema),
+    validate_body(userResetForgottenPasswordSchema),
     resetForgottenPassword
   );
 
@@ -70,7 +70,7 @@ router
   .route("/change-password")
   .post(
     verifyJWT,
-    validate(userChangeCurrentPasswordSchema),
+    validate_body(userChangeCurrentPasswordSchema),
     changeCurrentPassword
   );
 
@@ -84,8 +84,8 @@ router
   .post(
     verifyJWT,
     verifyPermission([UserRolesEnum.ADMIN]),  // good one
-    validate(mongoIdPathVariableSchema("userId")),
-    validate(userAssignRoleSchema)
+    validate_params(mongoIdPathVariableSchema("userId")),
+    validate_body(userAssignRoleSchema)
   )
 
 

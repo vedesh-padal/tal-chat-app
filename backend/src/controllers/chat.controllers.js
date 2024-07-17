@@ -189,7 +189,7 @@ const createOrGetAOneOnOneChat = asyncHandler(async (req, res) => {
   });
 
   // structure the chat as per the common aggregation to keep the consistency
-  const createdChat = await Chat.aggregrate([
+  const createdChat = await Chat.aggregate([
     {
       $match: {
         _id: newChatInstance._id,

@@ -108,9 +108,9 @@ const sendMessage = asyncHandler(async (req, res) => {
 
   // create a new message instance with appropriate metadata
   const message = await ChatMessage.create({
-    sender: mongoose.Types.ObjectId(req.user._id),  // correct way to use, pre-pending with new is not required in this case
+    sender: new mongoose.Types.ObjectId(req.user._id),  // correct way to use, pre-pending with new is not required in this case
     content: content || "",
-    chat: mongoose.Types.ObjectId(chatId),
+    chat: new mongoose.Types.ObjectId(chatId),
     attachments: messageFiles,
   });
 

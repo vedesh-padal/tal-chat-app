@@ -8,7 +8,7 @@ import { verifyJWT } from "../middlewares/auth.middlewares.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { sendMessageSchema } from "../validators/message.validators.js";
 import { mongoIdPathVariableSchema } from "../validators/mongodb.validators.js";
-import { validate } from "../validators/validate.js";
+import { validate_params, validate_body } from "../validators/validate.js";
 
 
 const router = Router();
@@ -23,13 +23,13 @@ router.use(verifyJWT);
 router
   .route("/:chatId")
   .get(
-    validate(mongoIdPathVariableSchema("chatId")),
+    validate_params(mongoIdPathVariableSchema("chatId")),
     getAllMessages
   )
   .post(
     upload.fields([{ name: "attachments", maxCount: 5 }]),
-    validate(mongoIdPathVariableSchema("chatId")),
-    validate(sendMessageSchema),
+    validate_params(mongoIdPathVariableSchema("chatId")),
+    validate_body(sendMessageSchema),
     sendMessage
   );
 
@@ -37,8 +37,8 @@ router
 router
   .route("/:chatId/:messageId")
   .delete(
-    validate(mongoIdPathVariableSchema("chatId")),
-    validate(mongoIdPathVariableSchema("messageId")),
+    validate_params(mongoIdPathVariableSchema("chatId")),
+    validate_params(mongoIdPathVariableSchema("messageId")),
     deleteMessage
   );
 

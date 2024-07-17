@@ -7,7 +7,7 @@ import {
 } from "../controllers/chat.controllers.js";
 import { verifyJWT } from "../middlewares/auth.middlewares.js";
 import { mongoIdPathVariableSchema } from "../validators/mongodb.validators.js";
-import { validate } from "../validators/validate.js";
+import { validate_params } from "../validators/validate.js";
 
 const router = Router();
 
@@ -20,14 +20,14 @@ router.route("/users").get(searchAvailableUsers);
 router
   .route("/c/:receiverId")
   .post(
-    validate(mongoIdPathVariableSchema("receiverId")),
+    validate_params(mongoIdPathVariableSchema("receiverId")),
     createOrGetAOneOnOneChat
   );
 
 router
   .route("/remove/:chatId")
   .delete(
-    validate(mongoIdPathVariableSchema("chatId")),
+    validate_params(mongoIdPathVariableSchema("chatId")),
     deleteOneOnOneChat
   );
 
