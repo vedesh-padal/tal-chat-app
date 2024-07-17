@@ -177,7 +177,7 @@ const createOrGetAOneOnOneChat = asyncHandler(async (req, res) => {
     // if we find the chat, that means user already has created a chat with that receiver
     return res
       .status(200)
-      .json(new ApiResponse(200, chat[0]), "Chat retrieved successfully");
+      .json(new ApiResponse(200, chat[0], "Chat retrieved successfully"));
   }
 
   // if not we need to create a new on on one chat

@@ -6,11 +6,10 @@ import { z } from "zod";
  * @param {string} idName
  * @description A common validator responsible to validate mongodb ids passed in the url's path variable
  */
-export const mongoIdPathVariableSchema = (idName) => {
-  return z.object({
-    [idName]: z.string().min(1).refine((value) => z.string().uuid('4').safeParse(value).success, `Invalid ${idName}`), 
-  });
-};
+export const mongoIdPathVariableSchema = () => {
+  return z.string().regex(/^[0-9a-fA-F]{24}$/, `Invalid id`)
+}
+
 
 /**
  * @param {string} idName
