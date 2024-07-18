@@ -8,7 +8,9 @@ import {
   AvailableSocialLogins,
   USER_TEMPORARY_TOKEN_EXPIRY,
   UserLoginType,
-  UserRolesEnum
+  UserRolesEnum,
+  InvitationStatusEnum,
+  InvitationStatuses,
 } from "../../constants.js"
 
 const userSchema = new Schema(
@@ -76,6 +78,15 @@ const userSchema = new Schema(
     emailVerificationExpiry: {
       type: Date,
     },
+    invitations: [
+      {
+        from: { type: Schema.Types.ObjectId, ref: "User" },
+        status: { type: String, enum: InvitationStatuses, default: InvitationStatusEnum.NONE }
+      },
+    ],
+    connections: [
+      { type: Schema.Types.ObjectId, ref: "User" },
+    ],
   },
   { timestamps: true }  // Adds createdAt and updatedAt fields to the schema.
 );

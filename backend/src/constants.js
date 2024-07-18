@@ -5,6 +5,15 @@ export const UserRolesEnum = {
   USER: "USER"
 };
 
+export const InvitationStatusEnum = {
+  PENDING: "PENDING",
+  ACCEPTED: "ACCEPTED",
+  REJECTED: "REJECTED",
+  NONE: "NONE"
+};
+
+export const InvitationStatuses = Object.values(InvitationStatusEnum);
+
 export const AvailableUserRoles = Object.values(UserRolesEnum);
 
 export const USER_TEMPORARY_TOKEN_EXPIRY = 20 * 60 * 1000; // 20 minutes
