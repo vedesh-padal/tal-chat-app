@@ -195,6 +195,16 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 
+const whoAmI = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select("avatar username email loginType invitations connections");
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, user, "User logged in successfully")
+    );
+})
+
 const verifyEmail = asyncHandler(async (req, res) => {
   const { verificationToken } = req.params;
 
@@ -495,4 +505,5 @@ export {
   resetForgottenPassword,
   updateUserAvatar,
   verifyEmail,
+  whoAmI
 };

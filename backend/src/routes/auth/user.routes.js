@@ -14,7 +14,8 @@ import {
   resendEmailVerification,
   resetForgottenPassword,
   updateUserAvatar,
-  verifyEmail
+  verifyEmail,
+  whoAmI,
 } from "../../controllers/auth/user.controllers.js";
 
 
@@ -65,6 +66,9 @@ router
 
 // secure routes
 router.route("/logout").post(verifyJWT, logoutUser);
+
+// optional  --> REMOVE LATER
+router.route("/whoAmI").get(verifyJWT, whoAmI);
 
 router
   .route("/change-password")
