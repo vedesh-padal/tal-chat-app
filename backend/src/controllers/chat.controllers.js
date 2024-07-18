@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ChatEventEnum } from "../constants.js";
+import { ChatEventEnum, InvitationStatusEnum } from "../constants.js";
 import { User } from "../models/auth/user.models.js"
 import { Chat } from "../models/chat.models.js";
 import { ChatMessage } from "../models/message.models.js";
@@ -111,12 +111,19 @@ const deleteCascadeChatMessages = async (chatId) => {
   });
 };
 
-const searchAvailableUsers = asyncHandler(async (req, res) => {
+
+
+const searchAllAvailableUsers = asyncHandler(async (req, res) => {
+
+  if (!req.user) {
+    throw new ApiError(401, "Unauthorized");
+  }
+
   const users = await User.aggregate([
     {
       $match: {
         _id: {
-          $ne: req.user._id,  // ($ne => note equal) avoid logged in user
+          $ne: req.user._id,
         },
       },
     },
@@ -132,6 +139,223 @@ const searchAvailableUsers = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, users, "Users fetched successfully"));
+
+});
+
+
+const searchUsers = asyncHandler(async (req, res) => {
+  
+  // zod validation can be done here if required (validate() middleware can be used if needed)
+  const { query } = req.query;  // /search?query=<searchTerm>
+
+  if (!query) {
+    throw new ApiError(400, "Search query is required");
+  }
+
+  // search for users by username or email (case insensitive)
+  const users = await User.find({
+    $or: [
+      { username: { $regex: query, $options: 'i' } },
+      { email: { $regex: query, $options: 'i' } },
+    ],
+  }).select("username email avatar"); // select only these fields
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, users, "Users fetched successfully"));
+
+});
+
+
+const sendInvitation = asyncHandler(async (req, res) => {
+  const { receiverId } = req.params;
+
+  // Check if the receiverId parameter is provided
+  if (!receiverId) {
+    throw new ApiError(400, "Invalid request: receiverId parameter is required");
+  }
+
+  // check if the receiver (user) exists
+  const receiver = await User.findById(receiverId);
+
+  if (!receiver)  {
+    throw new ApiError(404, "Receiver does not exist");
+  }
+
+  // Check if an invitation already exists
+  const existingInvitation = await User.findOne({
+    _id: receiverId,
+    'invitations.from': req.user._id
+  });
+
+  if (existingInvitation) {
+    // CHANGE STATUS CODE HERE, IF NEEDED
+    return res
+      .status(400)
+      .json(new ApiResponse(400, {}, "Invitation already sent"));
+  }
+
+  // Create new invitation
+  await User.findByIdAndUpdate(receiverId, {
+    $push: { invitations: { from: req.user._id } }
+  });
+
+  // save the user with updated invitatiosn
+  await req.user.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Invitation sent successfully"));
+
+});
+
+
+const respondToInvitation = asyncHandler(async (req, res) => {
+  const { invitationFrom, response } = req.query; // response can be 'accept' or 'reject'
+
+  // Check if the invitationFrom parameter is provided
+  if (!invitationFrom) {
+    throw new ApiError(400, "Invalid request: invitationFrom parameter is required");
+  }
+  
+  if (!response || !['accept', 'reject'].includes(response)) {
+    throw new ApiError(400, "Invalid request: response parameter is required and must be 'accept' or 'reject'");
+  }
+
+  // first the invitation received from should be a valid user
+  const sender = await User.findById(invitationFrom);
+
+  if (!sender)  {
+    throw new ApiError(404, "No such user from whom invitation was sent");
+  }
+
+  // find the invitation
+  const invitation = await req
+    .user
+    .invitations
+    .find(inv => inv.from.toString() === invitationFrom);
+
+  if (!invitation)  {
+    throw new ApiError(404, "Invitation not found");
+  }
+
+  // update invitation status
+  if (response === "accept")  {
+    invitation.status = InvitationStatusEnum.ACCEPTED;
+
+    // add each other to connections
+    // in-memory updates
+    req.user.connections.push(invitation.from);
+
+    const actualSender = await User.findById(invitation.from);
+    actualSender.connections.push(req.user._id);
+
+    // // update in DB as well
+    // await User.findByIdAndUpdate(req.user._id, {
+    //   $push: { connections: invitationFrom }
+    // });
+
+    // await User.findByIdAndUpdate(invitationFrom, {
+    //   $push: { connections: req.user._id }
+    // });
+    // the above DB update will be done by the save()
+
+    await actualSender.save()
+    // await req.user.save();
+
+    
+    // await sender.save();
+  } else if (response === "reject") {
+    invitation.status = InvitationStatusEnum.REJECTED;
+  } else {
+    throw new ApiError(400, "Invalid response by the user for the invitation");
+  }
+
+  // // remove the invitation after responding
+  // req.user.invitations.pull({ from: invitationFrom });
+  await req.user.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Invitation responded successfully"));
+
+});
+
+
+const getUsersByStatus = asyncHandler(async (req, res) => {
+  const { status } = req.params;
+  const invitationStatus = status.toLowerCase();
+
+  const getUserInvitationsByStatus = (status) => {
+    switch (status) {
+      case InvitationStatusEnum.PENDING.toLowerCase():
+        return req.user.invitations
+          .filter(inv => inv.status === InvitationStatusEnum.PENDING)
+          .map(({ from, status }) => ({ from, status }));
+      case InvitationStatusEnum.ACCEPTED.toLowerCase():
+        return req.user.invitations
+          .filter(inv => inv.status === InvitationStatusEnum.ACCEPTED)
+          .map(({ from, status }) => ({ from, status }));
+      case InvitationStatusEnum.REJECTED.toLowerCase():
+        return req.user.invitations
+          .filter(inv => inv.status === InvitationStatusEnum.REJECTED)
+          .map(({ from, status }) => ({ from, status }));
+      default:
+        throw new ApiError(400, "Invalid status of invitation as a request from the user");
+    }
+  };
+
+  const usersByStatus = getUserInvitationsByStatus(invitationStatus);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(
+      200,
+      { usersByStatus },
+      `Users with status ${status} fetched successfully`
+    ));
+});
+
+
+const getMyInvitations = asyncHandler(async (req, res) => {
+  
+  const user = await User.findById(req.user?._id);
+
+  if (!user)  {
+    throw new ApiError(404, "User not found");
+  }
+
+  // check if user has any invitations
+  if (!user.invitations || user.invitations.length === 0) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, [], "No invitations found"));
+  }
+
+  // const invitations = user.invitations.filter(
+  //   (inv) => inv.status !== InvitationStatusEnum.ACCEPTED
+  // );
+
+  const invitations = await Promise.all(
+    user.invitations.map(async (invitation) => {
+      const sender = await User.findById(invitation.from);
+      if (!sender)  {
+        throw new ApiError(404, "User not found");
+      }
+      return {
+        _id: sender._id,
+        avatar: sender.avatar,
+        email: sender.email,
+        username: sender.username,
+        role: sender.role
+      };
+    })
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, invitations, "Invitations fetched successfully"));
+
 });
 
 
@@ -150,6 +374,14 @@ const createOrGetAOneOnOneChat = asyncHandler(async (req, res) => {
   if (receiver._id.toString() === req.user._id.toString())  {
     throw new ApiError(400, "You cannot chat with yourself");
   }
+
+
+  // check if there's an existing invitation
+  const existingInvitation = receiver.invitations.find(inv => inv.from.equals(req.user._id));
+  if (!existingInvitation || existingInvitation.status !== InvitationStatusEnum.ACCEPTED) {
+    throw new ApiError(400, "The receiver has not accepted your invitation");
+  }
+
 
   const chat = await Chat.aggregate([
     {
@@ -183,7 +415,7 @@ const createOrGetAOneOnOneChat = asyncHandler(async (req, res) => {
   // if not we need to create a new on on one chat
   // AND THIS SHOULD HAPPEN ONLY WHEN THE CONNECTED REQUEST IS ACCEPTED --> TODO
   const newChatInstance = await Chat.create({
-    name: "One on one chat",  // change name here to indicate the conversation between whom
+    name: `Chat between ${req.user.username} and ${receiver.username}`,  // change name here to indicate the conversation between whom
     participants: [req.user._id, new mongoose.Types.ObjectId(receiverId)],  // add receiver and logged in user as participants
     admin: req.user._id,  // not really required for one-to-one chat, but just indicates who initiated the chat
   });
@@ -296,5 +528,10 @@ export {
   createOrGetAOneOnOneChat,
   deleteOneOnOneChat,
   getAllChats,
-  searchAvailableUsers,
+  searchAllAvailableUsers,
+  sendInvitation,
+  respondToInvitation,
+  searchUsers,
+  getMyInvitations,
+  getUsersByStatus,
 }
