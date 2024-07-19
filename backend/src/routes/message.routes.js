@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   deleteMessage,
   getAllMessages,
+  markMessageAsRead,
   sendMessage
 } from "../controllers/message.controllers.js";
 import { verifyJWT } from "../middlewares/auth.middlewares.js";
@@ -40,6 +41,14 @@ router
     validate_params(mongoIdPathVariableSchema("chatId")),
     validate_params(mongoIdPathVariableSchema("messageId")),
     deleteMessage
+  );
+
+router
+  .route("/:chatId/:messageId/read")
+  .patch(
+    validate_params(mongoIdPathVariableSchema("chatId")),
+    validate_params(mongoIdPathVariableSchema("messageId")),
+    markMessageAsRead
   );
 
 

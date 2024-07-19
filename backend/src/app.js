@@ -120,6 +120,9 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/chats", chatRouter);
 app.use("/api/v1/messages", messageRouter);
 
+
+initializeSocketIO(io);
+
 app.use(errorHandler);
 
 export { httpServer };

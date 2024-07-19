@@ -41,6 +41,8 @@ export const ChatEventEnum = Object.freeze({
   UPDATE_GROUP_NAME_EVENT: "updateGroupName",
   // when new message is received
   MESSAGE_RECEIVED_EVENT: "messageReceived",
+  // when message is read by the user at the client, client calls this event
+  MESSAGE_READ_EVENT: "messageRead",
   // when there is new one on one chat, new group chat or user gets added in thr group
   NEW_CHAT_EVENT: "newChat",
   // when there is an error in socket

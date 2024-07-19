@@ -72,6 +72,17 @@ const getAllMessages = asyncHandler(async (req, res) => {
         createdAt: -1,  // return the messages in descending order based on the created date of the message
       },
     },
+    {
+      $addFields: {
+        isRead: {
+          $cond: {
+            if: { $in: [ new mongoose.Types.ObjectId(req.user._id), "$readBy"] },
+            then: true,
+            else: false,
+          },
+        }
+      }
+    },
   ]);
 
   return res
@@ -236,8 +247,58 @@ const deleteMessage = asyncHandler(async (req, res) => {
 
 });
 
+
+/*
+  to notify the sender of a message that their message has been read by another participant in the chat. 
+  When a user reads a message, this code emits a WebSocket event specifically to the sender of that message, 
+  informing them that the message has been read. The event payload includes the IDs of the message, 
+  chat, and reader, allowing the sender to update their UI or perform other actions based on this information.
+*/
+const markMessageAsRead = asyncHandler(async (req, res) => {
+  const { chatId, messageId } = req.params;
+
+  const selectedChat = await Chat.findById(chatId);
+
+  if (!selectedChat)  {
+    throw new ApiError(404, "Chat does not exist");
+  }
+
+  if (!selectedChat.participants.includes(req.user._id))  {
+    throw new ApiError(403, "User is not part of this chat");
+  }
+
+  const message = await ChatMessage.findOne({
+    _id: new mongoose.Types.ObjectId(messageId),
+    chat: new mongoose.Types.ObjectId(chatId),
+  });
+
+  if (!message) {
+    throw new ApiError(404, "Message does not exist");
+  }
+
+  // if this message is not read read by the current logged-in user, do the following:
+  if (!message.readBy.includes(req.user._id)) {
+    message.readBy.push(req.user._id);
+    await message.save();
+
+    // emit a socket event for message read status -> to notify the sender
+    emitSocketEvent(
+      req,
+      message.sender.toString(),
+      ChatEventEnum.MESSAGE_READ_EVENT,
+      { messageId, chatId, readerId: req.user._id } 
+    );
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, message, "Message marked as read succesfully"));
+
+})
+
 export { 
   getAllMessages, 
   sendMessage, 
-  deleteMessage 
+  deleteMessage,
+  markMessageAsRead,
 };
