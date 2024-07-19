@@ -524,6 +524,36 @@ const getAllChats = asyncHandler(async (req, res) => {
 
 });
 
+
+const searchMessagesInChat = asyncHandler(async (req, res) => {
+  const { chatId, query } = req.query;
+
+  if (!chatId || !query)  {
+    throw new ApiError(400, "Chat ID and search query are required");
+  }
+
+  // find messages that match the query in the sepcified chat
+  const messages = await ChatMessage.find({
+    chat: chatId,
+    content: { $regex: query, $options: 'i' }
+  })
+    .populate("sender", "username avatar email")
+    .sort({ createdAt: -1 });
+
+
+  if (!messages.length) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, messages, "Messages fetched successfully"));
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, messages, "Messages fetched successfully"));
+
+});
+
+
 export {
   createOrGetAOneOnOneChat,
   deleteOneOnOneChat,
@@ -534,4 +564,5 @@ export {
   searchUsers,
   getMyInvitations,
   getUsersByStatus,
+  searchMessagesInChat
 }

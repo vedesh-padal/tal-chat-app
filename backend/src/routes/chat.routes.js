@@ -8,7 +8,8 @@ import {
   sendInvitation,
   respondToInvitation,
   getMyInvitations,
-  getUsersByStatus
+  getUsersByStatus,
+  searchMessagesInChat
 } from "../controllers/chat.controllers.js";
 import { verifyJWT } from "../middlewares/auth.middlewares.js";
 import { mongoIdPathVariableSchema } from "../validators/mongodb.validators.js";
@@ -40,8 +41,13 @@ router
 
 
 router
-  .route("/users/:status")
+  .route("/invitations/:status")
   .get(getUsersByStatus);
+
+router
+  .route("/invitations/all")
+  .get(getMyInvitations);
+
 
 router
   .route("/c/:receiverId")
@@ -49,6 +55,12 @@ router
     validate_params(mongoIdPathVariableSchema("receiverId")),
     createOrGetAOneOnOneChat
   );
+
+
+router
+  .route("/searchMessages")
+  .get(searchMessagesInChat);  // uses query parameters to pass chatId and search query
+
 
 router
   .route("/remove/:chatId")
