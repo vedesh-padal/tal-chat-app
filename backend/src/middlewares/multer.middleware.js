@@ -1,4 +1,5 @@
 import multer from "multer";
+import { ApiError } from "../utils/ApiError";
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -31,10 +32,37 @@ const storage = multer.diskStorage({
   },
 });
 
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "application/pdf",
+    "application/msword", // .doc
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  // .docx
+  ];
+
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new ApiError(400, "Invalid file type. Only images and documents are allowed."), false);
+  }
+};
+
 // Middleware responsible to read form data and uplaod the File object to the mentioned path
-export const upload = multer({
+export const uploadAttachment = multer({
   storage,
+  fileFilter,
   limits: {
-    fileSize: 5 * 1000 * 1000,
+    fileSize: 10 * 1000 * 1000,
+  },
+});
+
+// Middleware responsible to read form data and uplaod the File object to the mentioned path
+export const uploadAvatar = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 1 * 1000 * 1000,
   },
 });

@@ -6,7 +6,7 @@ import {
   sendMessage
 } from "../controllers/message.controllers.js";
 import { verifyJWT } from "../middlewares/auth.middlewares.js";
-import { upload } from "../middlewares/multer.middleware.js";
+import { uploadAttachment } from "../middlewares/multer.middleware.js";
 import { sendMessageSchema } from "../validators/message.validators.js";
 import { mongoIdPathVariableSchema } from "../validators/mongodb.validators.js";
 import { validate_params, validate_body } from "../validators/validate.js";
@@ -28,7 +28,7 @@ router
     getAllMessages
   )
   .post(
-    upload.fields([{ name: "attachments", maxCount: 5 }]),
+    uploadAttachment.fields([{ name: "attachments", maxCount: 5 }]),
     validate_params(mongoIdPathVariableSchema("chatId")),
     validate_body(sendMessageSchema),
     sendMessage

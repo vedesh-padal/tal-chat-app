@@ -195,16 +195,6 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 
-const whoAmI = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id).select("avatar username email loginType invitations connections");
-
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(200, user, "User logged in successfully")
-    );
-})
-
 const verifyEmail = asyncHandler(async (req, res) => {
   const { verificationToken } = req.params;
 
@@ -445,51 +435,74 @@ const assignRole = asyncHandler(async (req, res) => {
 
 
 const getCurrentUser = asyncHandler(async (req, res) => {
+
+  const user = await User.findById(req.user._id).select("-password -refreshToken -emailVerificationToken -emailVerificationExpiry");
+
   return res
     .status(200)
-    .json(new ApiResponse(200, req.user, "Current user fetched successfully"));
+    .json(
+      new ApiResponse(200, user, "User logged in successfully")
+    );
 });
 
 
 // IF IN FUTURE SOCIAL LOGINS are present logic to handle that here
 
 
-const updateUserAvatar = asyncHandler(async (req, res) => {
-  // check if user has uploaded an avatar
-  if (!req.file?.filename)  {
-    throw new ApiError(400, "Avatar image is required");
+
+const updateUserProfile = asyncHandler(async (req, res) => {
+  const { statusMessage } = req.body;
+
+  if (!req.file && !statusMessage)  {
+    throw new ApiError(400, "At least one of avatar or status message is required");
   }
 
-  // get avatar file system url and local path
-  const avatarUrl = getStaticFilePath(req, req.file?.filename);
-  const avatarLocalPath = getLocalPath(req.file?.filename);
+  const userId = req.user._id;
+  const updateData = {};
 
-  const user = await User.findById(req.user._id);
+  // check if avatar needs to be updated
+  if (req.file) {
+    const avatarUrl = getStaticFilePath(req, req.file.filename);
+    const avatarLocalPath = getLocalPath(req.file.filename);
+    
+    updateData.avatar = {
+      url: avatarUrl,
+      localPath: avatarLocalPath,
+    };
+  }
 
-  let updatedUser = await User.findByIdAndUpdate(
-    req.user._id,
+  // check if status message needs to be updated
+  if (statusMessage)  {
+    updateData.statusMessage = statusMessage;
+  }
+
+  const user = await User.findById(userId);
+
+  // ensure user exists before proceeding
+  if (!user)  {
+    throw new ApiError(404, "User not found");
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
     {
-      $set: {
-        // set the newly uploaded avatar
-        avatar: {
-          url: avatarUrl,
-          localPath: avatarLocalPath,
-        }
-      },
+      $set: updateData,
     },
     { new: true }
   ).select(
     "-password -refreshToken -emailVerificationToken -emailVerificationExpiry"
   );
 
-  // remove the old avatar
-  removeLocalFile(user.avatar.localPath);
+  // if avatar was updated, remove the old avatar file
+  if (req.file && user.avatar.localPath)  {
+    removeLocalFile(user.avatar.localPath);
+  }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, updatedUser, "Avatar updated successfully"));
+    .json(new ApiResponse(200, updatedUser, "Profile updated successfully"));
 
-});
+})
 
 
 export {
@@ -503,7 +516,6 @@ export {
   registerUser,
   resendEmailVerification,
   resetForgottenPassword,
-  updateUserAvatar,
   verifyEmail,
-  whoAmI
+  updateUserProfile
 };

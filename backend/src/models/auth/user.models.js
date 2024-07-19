@@ -87,6 +87,12 @@ const userSchema = new Schema(
     connections: [
       { type: Schema.Types.ObjectId, ref: "User" },
     ],
+    statusMessage: {
+      type: String,
+      trim: true,
+      maxLength: 150,
+      default: "Hey there! I'm using the Chat app."
+    },
   },
   { timestamps: true }  // Adds createdAt and updatedAt fields to the schema.
 );

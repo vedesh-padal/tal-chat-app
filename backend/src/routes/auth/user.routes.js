@@ -13,9 +13,8 @@ import {
   registerUser,
   resendEmailVerification,
   resetForgottenPassword,
-  updateUserAvatar,
+  updateUserProfile,
   verifyEmail,
-  whoAmI,
 } from "../../controllers/auth/user.controllers.js";
 
 
@@ -36,7 +35,7 @@ import {
   verifyPermission
 } from "../../middlewares/auth.middlewares.js"
 
-import { upload } from "../../middlewares/multer.middleware.js";
+import { uploadAvatar } from "../../middlewares/multer.middleware.js";
 
 // import passport/index.js for OAuth related logic [ if OAuth is needed ]
 
@@ -67,8 +66,12 @@ router
 // secure routes
 router.route("/logout").post(verifyJWT, logoutUser);
 
-// optional  --> REMOVE LATER
-router.route("/whoAmI").get(verifyJWT, whoAmI);
+// optional  --> REMOVE LATER, if need be
+router.route("/current-user").get(verifyJWT, getCurrentUser);
+
+router
+  .route("/profile")
+  .patch(verifyJWT, uploadAvatar.single("avatar"), updateUserProfile);
 
 router
   .route("/change-password")
