@@ -1,0 +1,1999 @@
+openapi: 3.1.0
+
+info:
+  title: One-to-One Chat API
+  description: >-
+    # One-to-One Chat Application API for TAL Chat
+
+    The **One-to-One Chat Application** is a robust and feature-rich project designed to facilitate seamless real-time communication between users.
+
+    This project provides a comprehensive API for essential functionalities such as user registration, real-time messaging, multimedia sharing, push notifications, user status tracking, and secure authentication.
+
+    Key highlights of the One-to-One Chat Application include:
+
+    1. **🔐 Secure Authentication:** Ensures user data privacy and secure access through robust authentication mechanisms.
+
+
+    2. **📨 Real-Time Messaging:** Supports instant communication between users using socket programming and real-time updates.
+
+
+    3. **📸 Multimedia Sharing:** Allows users to share images, videos, and other multimedia content within chats.
+
+
+    4. **📱 Push Notifications:** Keeps users informed about new messages and updates even when they are not actively using the app.
+
+
+    5. **🟢 User Status Tracking:** Monitors and displays the online/offline status of users in real-time.
+
+
+    ## 🏁 Installation
+
+    Follow the instructions in the [GitHub repository](https://github.com/vedesh-padal/tal-chat-web) for installation and project setup.
+
+    ## 🐞 Reporting issues
+
+    If you encounter any issues or bugs, please create an [issue](https://github.com/vedesh-padal/tal-chat-web/issues/new) and assign it to a member of the development team.
+  version: 1.0.0
+  contact: {}
+servers:
+  - description: Development Server
+    url: ${{server}}
+
+tags:
+  - name: 🔐 Authentication
+    description: >-
+      This section encompasses all the APIs related to user Authentication.
+  - name: Chats
+    description: >-
+      This section encompasses all the APIs related to Chats.
+  - name: Messages
+    description: >-
+      This section encompasses all the APIs related to Messages.
+  # - name: 🚫 Danger Zone
+  #   description: "**WARNING: Sensitive Operations ⚠️**"
+  - name: Miscellaneous
+    description: Misc API
+
+paths:
+  /healthcheck:
+    get:
+      tags:
+        - Miscellaneous
+      summary: ⛑️ healthcheck
+      description: >-
+        This API endpoint is commonly used to determine the health status or 
+        availability of a system or service.
+
+        It is a simple and lightweight endpoint designed to perform a quick
+        health check of the application or infrastructure.
+      operationId: healthcheck
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: string
+                    example: OK
+                  message:
+                    type: string
+                    example: Health Check passed
+                  statusCode:
+                    type: number
+                    example: 200
+                  success:
+                    type: boolean
+                    example: true
+              examples:
+                healthcheck:
+                  value:
+                    data: OK
+                    message: Health check passed
+                    statusCode: 200
+                    success: true
+
+  /users/register:
+    post:
+      tags:
+        - 🔐 Authentication
+      summary: Register user
+      description: >-
+        The API endpoint allows user to register or signup to create
+        their accounts.
+      operationId: registerUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: user.email@domain.com
+                password:
+                  type: string
+                  example: test@123
+                role:
+                  description: role of the user (optional to pass)
+                  type: string
+                  example: ADMIN
+                username:
+                  type: string
+                  example: doejohn
+            example:
+              email: user.email@domain.com
+              password: test@123
+              role: ADMIN
+              username: doejohn
+      responses:
+        "201":
+          description: Register user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          __v:
+                            type: number
+                            example: 0
+                          _id:
+                            type: string
+                            example: 649e795264e7dba29b726936
+                          avatar:
+                            type: object
+                            properties:
+                              _id:
+                                type: string
+                                example: 649e795264e7dba29b726935
+                              localPath:
+                                type: string
+                                example: ""
+                              url:
+                                type: string
+                                example: https://via.placeholder.com/200x200.png
+                          username:
+                            type: string
+                            example: doejohn
+                          email:
+                            type: string
+                            example: user.email@domain.com
+                          role:
+                            type: string
+                            example: ADMIN
+                          loginType:
+                            type: string
+                            example: EMAIL_PASSWORD
+                          isEmailVerified:
+                            type: boolean
+                            example: false
+                          connections:
+                            type: array
+                            items:
+                              type: string
+                              format: objectId
+                              example: "60b8d6f4f1a2c24f1c8e4e3b" # Example ObjectId reference to a User
+                          statusMessage:
+                            type: string
+                            maxLength: 150
+                            example: "Hey there! I'm using the Chat app."
+                          invitations:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                from:
+                                  type: string
+                                  format: objectId
+                                  example: "60b8d6f4f1a2c24f1c8e4e3b" # Example ObjectId reference to a User
+                                status:
+                                  type: string
+                                  enum:
+                                    - NONE
+                                    - PENDING
+                                    - ACCEPTED
+                                    - DECLINED
+                                  example: "PENDING"
+                          createdAt:
+                            type: string
+                            example: "2023-06-30T06:42:26.163Z"
+                          updatedAt:
+                            type: string
+                            example: "2023-06-30T06:42:26.247Z"
+                  message:
+                    type: string
+                    example: >-
+                      Users registered successfully and verification email has
+                      been sent on your email.
+                  statusCode:
+                    type: number
+                    example: 201
+                  success:
+                    type: boolean
+                    example: true
+
+  /users/login:
+    post:
+      tags:
+        - 🔐 Authentication
+      summary: Login user
+      description: >-
+        The API endpoint allows users to log into the application securely and
+        also returns an access token.
+
+        When accessing this endpoint with valid login credentials, users will
+        receive an access token in the response.
+
+        Additionally, the API endpoint securely sets the access token within the
+        browser/client httpOnly cookies for future authentication and
+        authorization purposes.
+
+        This functionality ensures a secure and efficient login process for
+        users, providing them with an access token that can be used to
+        authenticate subsequent API requests.
+
+        By securely storing the access token in browser cookies, the endpoint
+        enables automatic inclusion of the access token in future API requests,
+        eliminating the need for users to manually manage and provide the token
+        with each request.
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: doejohn
+                password:
+                  type: string
+                  example: test@123
+            example:
+              username: doejohn
+              password: test@123
+      responses:
+        "200":
+          description: User logged in successfully
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: >-
+                  refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NDllNzk1MjY0ZTdkYmEyOWI3MjY5MzYiLCJpYXQiOjE2ODgxMDc0NjksImV4cCI6MTY4ODk3MTQ2OX0.7or55Coj0K_UY4YpzYzkNR9hcOIhusxk9FRz7eMV8Ho;
+                  Path=/; HttpOnly
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        "400":
+          description: Bad Request - Missing email or username
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Username or email is required
+                  statusCode:
+                    type: number
+                    example: 400
+                  success:
+                    type: boolean
+                    example: false
+        "401":
+          description: Unauthorized - Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid user credentials
+                  statusCode:
+                    type: number
+                    example: 401
+                  success:
+                    type: boolean
+                    example: false
+        "404":
+          description: Not Found - User does not exist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User does not exist
+                  statusCode:
+                    type: number
+                    example: 404
+                  success:
+                    type: boolean
+                    example: false
+  
+  /users/refresh-token:
+    post:
+      tags:
+        - 🔐 Authentication
+      summary: Refresh token
+      description: >-
+        The Refresh Access Token API is responsible for refreshing the access
+        token when it expires.
+
+        It allows you to make a request to this endpoint with the refresh token,
+        which has a lengthy expiry time, to obtain a new access token.
+
+        Simultaneously, the API sets the new access token in a cookie for future
+        authentication purposes while replacing the expired one.
+
+        This functionality ensures continuous access to protected resources by
+        automatically renewing the access token **without requiring the user to
+        reauthenticate manually**.
+
+        By utilizing the refresh token, the API securely refreshes the access
+        token and updates it in the cookie, ensuring seamless and uninterrupted
+        access to authorized endpoints.
+      operationId: refreshToken
+      responses:
+        '200':
+          description: Refresh token
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: >-
+                  refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NDc2ZTM0ZWJlMWNmYjljYzA4YmQ0NDYiLCJpYXQiOjE2ODU1NjMyMjEsImV4cCI6MTY4NjQyNzIyMX0.TJpj8-2qU__GI_dKDdrHwQvUWCFSFXCfgOuV6MV05UI;
+                  Path=/; HttpOnly
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        "400":
+          description: Bad Request - Missing email or username
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                MissingEmailOrUsername:
+                  value:
+                    message: "Username or email is required"
+                    statusCode: 400
+                    success: false
+        "401":
+          description: Unauthorized - Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                InvalidCredentials:
+                  value:
+                    message: "Invalid user credentials"
+                    statusCode: 401
+                    success: false
+        "404":
+          description: Not Found - User does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                UserNotFound:
+                  value:
+                    message: "User does not exist"
+                    statusCode: 404
+                    success: false
+
+
+  /users/verify-email/{verificationToken}:
+    get:
+      tags:
+        - 🔐 Authentication
+      summary: Verify user email
+      parameters:
+        - in: path
+          name: verificationToken
+          required: true
+          schema:
+            type: string
+            example: "abcdef123456"  # Example verification token
+      responses:
+        '200':
+          description: Email verification successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyEmailResponse'
+        '400':
+          description: Bad Request - Email verification token is missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                MissingVerificationToken:
+                  value:
+                    message: "Email verification token is missing"
+                    statusCode: 400
+                    success: false
+        '401':
+          description: Unauthorized - Token is invalid or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                InvalidOrExpiredToken:
+                  value:
+                    message: "Token is invalid or expired"
+                    statusCode: 401
+                    success: false
+
+  /users/forgot-password:
+    post:
+      tags:
+        - 🔐 Authentication
+      summary: Request password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+      responses:
+        '200':
+          description: Password reset mail sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForgotPasswordResponse'
+        '404':
+          description: Not Found - User does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                UserNotFound:
+                  value:
+                    message: "User does not exists"
+                    statusCode: 404
+                    success: false
+
+  /users/reset-password/:resetToken:
+    post:
+      tags:
+        - 🔐 Authentication
+      summary: Reset forgotten password
+      parameters:
+        - in: path
+          name: resetToken
+          required: true
+          schema:
+            type: string
+            example: "abcdef123456"  # Example reset token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newPassword:
+                  type: string
+                  example: "newPassword123"
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetPasswordResponse'
+        '401':
+          description: Unauthorized - Token is invalid or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                InvalidOrExpiredToken:
+                  value:
+                    message: "Token is invalid or expired"
+                    statusCode: 401
+                    success: false
+
+  /users/logout:
+    post:
+      tags:
+        - 🔐 Authentication
+      summary: User logout
+      responses:
+        '200':
+          description: User logged out successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+        '401':
+          description: Unauthorized - Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                InvalidOrExpiredToken:
+                  value:
+                    message: "Token is invalid or expired"
+                    statusCode: 401
+                    success: false
+
+  /users/current-user:
+    get:
+      tags:
+        - 🔐 Authentication
+      summary: Get current user
+      responses:
+        '200':
+          description: Current user data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUserResponse'
+        '401':
+          description: Unauthorized - Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                InvalidOrExpiredToken:
+                  value:
+                    message: "Token is invalid or expired"
+                    statusCode: 401
+                    success: false
+  /users/profile:
+    patch:
+      tags:
+        - 🔐 Authentication
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusMessage:
+                  type: string
+                  example: "Feeling great!"
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateUserProfileResponse'
+        '400':
+          description: Bad Request - At least one of avatar or status message is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                MissingData:
+                  value:
+                    message: "At least one of avatar or status message is required"
+                    statusCode: 400
+                    success: false
+        '404':
+          description: Not Found - User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                UserNotFound:
+                  value:
+                    message: "User not found"
+                    statusCode: 404
+                    success: false
+  
+  /users/change-password:
+    post:
+      tags:
+        - 🔐 Authentication
+      summary: Change current user's password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oldPassword:
+                  type: string
+                  example: "oldPassword123"
+                newPassword:
+                  type: string
+                  example: "newPassword123"
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangePasswordResponse'
+        '400':
+          description: Bad Request - Invalid old password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                InvalidOldPassword:
+                  value:
+                    message: "Invalid old password"
+                    statusCode: 400
+                    success: false
+
+  /users/resend-email-verification:
+    post:
+      tags:
+        - 🔐 Authentication
+      summary: Resend email verification
+      responses:
+        '200':
+          description: Email verification mail sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResendVerificationResponse'
+        '404':
+          description: Not Found - User does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                UserNotFound:
+                  value:
+                    message: "User does not exists"
+                    statusCode: 404
+                    success: false
+        '409':
+          description: Conflict - Email is already verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                EmailAlreadyVerified:
+                  value:
+                    message: "Email is already verified!"
+                    statusCode: 409
+                    success: false
+
+  /users/assign-role/{userId}:
+    post:
+      tags:
+        - 🔐 Authentication
+      summary: Assign a role to a user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            example: "649e795264e7dba29b726936"  # Example user ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  enum: 
+                    - USER
+                    - ADMIN
+                  example: "ADMIN"
+      responses:
+        '200':
+          description: Role changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignRoleResponse'
+        '404':
+          description: Not Found - User does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                UserNotFound:
+                  value:
+                    message: "User does not exist"
+                    statusCode: 404
+                    success: false
+
+# --------------------------------------------------------------
+
+  /chats:
+    get:
+      tags:
+        - Chats
+      summary: Retrieve all chats associated with the logged-in user.
+      operationId: getAllChats
+      responses:
+        '200':
+          description: Successfully fetched user chats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAllChatsResponse'
+        '401':
+          description: Unauthorized - Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                InvalidOrExpiredToken:
+                  value:
+                    message: "Token is invalid or expired"
+                    statusCode: 401
+                    success: false
+
+  /chats/users:
+    get:
+      tags:
+        - Chats
+      summary: Search all available users
+      responses:
+        '200':
+          description: Successfully fetched available users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchAvailableUsersResponse'
+        '401':
+          description: Unauthorized - User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Unauthorized:
+                  value:
+                    message: "Unauthorized"
+                    statusCode: 401
+                    success: false
+
+  /chats/search:
+    get:
+      tags:
+        - Chats
+      summary: Search users by username or email
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+            example: "vpadal"
+      responses:
+        '200':
+          description: Successfully fetched searched users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchUsersResponse'
+        '400':
+          description: Bad Request - Search query is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                MissingSearchQuery:
+                  value:
+                    message: "Search query is required"
+                    statusCode: 400
+                    success: false
+
+  /chats/invitations/send/{receiverId}:
+    post:
+      tags:
+        - Chats
+      summary: Send an invitation to a user
+      parameters:
+        - in: path
+          name: receiverId
+          required: true
+          schema:
+            type: string
+            example: "669798f02904c7849408f204"  # Example receiver ID
+      responses:
+        '200':
+          description: Invitation sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendInvitationResponse'
+        '400':
+          description: Bad Request - Invalid request or invitation already sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                InvalidReceiverId:
+                  value:
+                    message: "Invalid request: receiverId parameter is required"
+                    statusCode: 400
+                    success: false
+                InvitationAlreadySent:
+                  value:
+                    message: "Invitation already sent"
+                    statusCode: 400
+                    success: false
+        '404':
+          description: Not Found - Receiver does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                ReceiverNotFound:
+                  value:
+                    message: "Receiver does not exist"
+                    statusCode: 404
+                    success: false
+
+  /chats/invitations/respond:
+    post:
+      tags:
+        - Chats
+      summary: Respond to an invitation
+      parameters:
+        - in: query
+          name: invitationFrom
+          required: true
+          schema:
+            type: string
+            example: "669798f02904c7849408f204"  # Example invitation sender ID
+        - in: query
+          name: response
+          required: true
+          schema:
+            type: string
+            enum:
+              - accept
+              - reject
+            example: "accept"
+      responses:
+        '200':
+          description: Invitation responded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespondToInvitationResponse'
+        '400':
+          description: Bad Request - Invalid request or response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                MissingInvitationFrom:
+                  value:
+                    message: "Invalid request: invitationFrom parameter is required"
+                    statusCode: 400
+                    success: false
+                InvalidResponse:
+                  value:
+                    message: "Invalid request: response parameter is required and must be 'accept' or 'reject'"
+                    statusCode: 400
+                    success: false
+        '404':
+          description: Not Found - No such user or invitation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                SenderNotFound:
+                  value:
+                    message: "No such user from whom invitation was sent"
+                    statusCode: 404
+                    success: false
+                InvitationNotFound:
+                  value:
+                    message: "Invitation not found"
+                    statusCode: 404
+                    success: false
+
+  /chats/invitations/{status}:
+    get:
+      tags:
+        - Chats
+      summary: Get users by invitation status
+      parameters:
+        - in: path
+          name: status
+          required: true
+          schema:
+            type: string
+            enum:
+              - pending
+              - accepted
+              - rejected
+            example: "pending"
+      responses:
+        '200':
+          description: Users fetched by invitation status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetUsersByInvitationStatusResponse'
+        '400':
+          description: Bad Request - Invalid invitation status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                InvalidStatus:
+                  value:
+                    message: "Invalid status of invitation as a request from the user"
+                    statusCode: 400
+                    success: false
+
+  /chats/all-invitations:
+    get:
+      tags:
+        - Chats
+      summary: Get all invitations for the logged-in user
+      responses:
+        '200':
+          description: Successfully fetched invitations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMyInvitationsResponse'
+        '404':
+          description: Not Found - User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                UserNotFound:
+                  value:
+                    message: "User not found"
+                    statusCode: 404
+                    success: false
+
+  /chats/c/{receiverId}:
+    post:
+      tags:
+        - Chats
+      summary: Create or get a one-on-one chat
+      parameters:
+        - in: path
+          name: receiverId
+          required: true
+          schema:
+            type: string
+            example: "669798f02904c7849408f204"  # Example receiver ID
+      responses:
+        '201':
+          description: Chat created or retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOrGetChatResponse'
+        '400':
+          description: Bad Request - Receiver does not exist or cannot chat with yourself or invitation not accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                ReceiverNotFound:
+                  value:
+                    message: "Receiver does not exist"
+                    statusCode: 400
+                    success: false
+                CannotChatWithYourself:
+                  value:
+                    message: "You cannot chat with yourself"
+                    statusCode: 400
+                    success: false
+                InvitationNotAccepted:
+                  value:
+                    message: "The receiver has not accepted your invitation"
+                    statusCode: 400
+                    success: false
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                InternalServerError:
+                  value:
+                    message: "Internal server error"
+                    statusCode: 500
+                    success: false
+
+  /chats/searchMessages/{chatId}/serach:
+    get:
+      tags:
+        - Chats
+      summary: Search messages in a chat
+      parameters:
+        - in: path
+          name: chatId
+          required: true
+          schema:
+            type: string
+            example: "6697f623f14e1d8886b46ad4"  # Example chat ID
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+            example: "Hello"
+      responses:
+        '200':
+          description: Successfully fetched messages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchMessagesResponse'
+        '400':
+          description: Bad Request - Chat ID and search query are required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                MissingParameters:
+                  value:
+                    message: "Chat ID and search query are required"
+                    statusCode: 400
+                    success: false
+
+  /chats/remove/{chatId}:
+    delete:
+      tags:
+        - Chats
+      summary: Delete a one-on-one chat
+      parameters:
+        - in: path
+          name: chatId
+          required: true
+          schema:
+            type: string
+            example: "6697f623f14e1d8886b46ad4"  # Example chat ID
+      responses:
+        '200':
+          description: Chat deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteChatResponse'
+        '404':
+          description: Not Found - Chat does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                ChatNotFound:
+                  value:
+                    message: "Chat does not exist"
+                    statusCode: 404
+                    success: false
+
+# -------------------------------------------------------------
+
+  /messages/{chatId}:
+      get:
+        tags:
+          - Messages
+        summary: Get all messages in a chat
+        parameters:
+          - in: path
+            name: chatId
+            required: true
+            schema:
+              type: string
+              example: "6697f623f14e1d8886b46ad4"  # Example chat ID
+        responses:
+          '200':
+            description: Successfully fetched messages
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/GetMessagesResponse'
+          '400':
+            description: Bad Request - User is not part of this chat
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+                examples:
+                  NotPartOfChat:
+                    value:
+                      message: "User is not part of this chat"
+                      statusCode: 400
+                      success: false
+          '404':
+            description: Not Found - Chat does not exist
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+                examples:
+                  ChatNotFound:
+                    value:
+                      message: "Chat does not exist"
+                      statusCode: 404
+                      success: false
+
+      post:
+        tags:
+          - Messages
+        summary: Send a message in a chat
+        parameters:
+          - in: path
+            name: chatId
+            required: true
+            schema:
+              type: string
+              example: "6697f623f14e1d8886b46ad4"  # Example chat ID
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: string
+                    example: "Hello, this is a message."
+                  attachments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        url:
+                          type: string
+                          example: "https://example.com/image.png"
+                        localPath:
+                          type: string
+                          example: "/local/path/to/image.png"
+        responses:
+          '201':
+            description: Message saved successfully
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/SendMessageResponse'
+          '400':
+            description: Bad Request - Message content or attachment is required
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+                examples:
+                  MissingContent:
+                    value:
+                      message: "Message content or attachment is required"
+                      statusCode: 400
+                      success: false
+          '404':
+            description: Not Found - Chat does not exist
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+                examples:
+                  ChatNotFound:
+                    value:
+                      message: "Chat does not exist"
+                      statusCode: 404
+                      success: false
+
+  /messages/{chatId}/{messageId}:
+    delete:
+      tags:
+        - Messages
+      summary: Delete a message
+      parameters:
+        - in: path
+          name: chatId
+          required: true
+          schema:
+            type: string
+            example: "6697f623f14e1d8886b46ad4"  # Example chat ID
+        - in: path
+          name: messageId
+          required: true
+          schema:
+            type: string
+            example: "66980bb19a30129f00cb3fcb"  # Example message ID
+      responses:
+        '200':
+          description: Message deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteMessageResponse'
+        '403':
+          description: Forbidden - User is not authorized to delete the message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                NotAuthorized:
+                  value:
+                    message: "You are not the authorised to delete the message, you are not the same sender"
+                    statusCode: 403
+                    success: false
+        '404':
+          description: Not Found - Chat or message does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                ChatNotFound:
+                  value:
+                    message: "Chat does not exist"
+                    statusCode: 404
+                    success: false
+                MessageNotFound:
+                  value:
+                    message: "Message does not exist"
+                    statusCode: 404
+                    success: false
+
+  /messages/{chatId}/{messageId}/read:
+    patch:
+      tags:
+        - Messages
+      summary: Mark a message as read
+      parameters:
+        - in: path
+          name: chatId
+          required: true
+          schema:
+            type: string
+            example: "6697f623f14e1d8886b46ad4"  # Example chat ID
+        - in: path
+          name: messageId
+          required: true
+          schema:
+            type: string
+            example: "66980bb19a30129f00cb3fcb"  # Example message ID
+      responses:
+        '200':
+          description: Message marked as read successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarkMessageAsReadResponse'
+        '403':
+          description: Forbidden - User is not authorized to mark the message as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                NotAuthorized:
+                  value:
+                    message: "User is not part of this chat"
+                    statusCode: 403
+                    success: false
+        '404':
+          description: Not Found - Chat or message does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                ChatNotFound:
+                  value:
+                    message: "Chat does not exist"
+                    statusCode: 404
+                    success: false
+                MessageNotFound:
+                  value:
+                    message: "Message does not exist"
+                    statusCode: 404
+                    success: false
+
+
+
+
+
+
+
+
+
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "669c94f33674816af6ea8ca6"
+        avatar:
+          type: object
+          properties:
+            url:
+              type: string
+              example: "https://via.placeholder.com/200x200.png"
+            localPath:
+              type: string
+              example: ""
+            _id:
+              type: string
+              example: "669c94f33674816af6ea8ca5"
+        username:
+          type: string
+          example: "tmay"
+        email:
+          type: string
+          example: "tanmay@gmail.com"
+        role:
+          type: string
+          example: "USER"
+        loginType:
+          type: string
+          example: "EMAIL_PASSWORD"
+        isEmailVerified:
+          type: boolean
+          example: false
+        connections:
+          type: array
+          items:
+            type: string
+            example: []  # Empty array
+        statusMessage:
+          type: string
+          example: "Hey there! I'm using the Chat app."
+        invitations:
+          type: array
+          items:
+            type: object
+            properties:
+              from:
+                type: string
+                example: "669cdbfd9bf5f1fcd10e87f6"
+              status:
+                type: string
+                example: "ACCEPTED"
+              _id:
+                type: string
+                example: "669cdcf953cde65ccc794a15"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-07-21T04:56:19.779Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-07-21T05:29:41.757Z"
+        __v:
+          type: integer
+          example: 0
+
+    LoginResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 200
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            accessToken:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NjljOTRmMzM2NzQ4MTZhZjZlYThjYTYiLCJlbWFpbCI6InRhbm1heUBnbWFpbC5jb20iLCJ1c2VybmFtZSI6InRtYXkiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTcyMTUzOTc4MSwiZXhwIjoxNzIxNjI2MTgxfQ.wVcI5eiGMPBwnePrUF6wZXFEQiHdklUp8CQ6anBydkk"
+            refreshToken:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NjljOTRmMzM2NzQ4MTZhZjZlYThjYTYiLCJpYXQiOjE3MjE1Mzk3ODEsImV4cCI6MTcyMjQwMzc4MX0.59ooWH9t9ueyuFccu_RFUnXqFHaNQJhkcc-i5bJVL_U"
+        message:
+          type: string
+          example: "User logged in successfully"
+        success:
+          type: boolean
+          example: true
+
+    CommonResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Access token refreshed"
+        statusCode:
+          type: number
+          example: 200
+
+    TokenResponse:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/CommonResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                accessToken:
+                  type: string
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                refreshToken:
+                  type: string
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Error message"
+        statusCode:
+          type: number
+          example: 400
+        success:
+          type: boolean
+          example: false
+    
+    VerifyEmailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Email is verified"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: object
+          properties:
+            isEmailVerified:
+              type: boolean
+              example: true
+
+    ForgotPasswordResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Password reset mail has been sent to your mail ID"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: object
+          properties: {}
+
+    ResetPasswordResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Password reset successfully"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: object
+          properties: {}
+
+    LogoutResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "User logged out"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: object
+          properties: {}
+
+    CurrentUserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "User logged in successfully"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          $ref: '#/components/schemas/User'
+    
+    UpdateUserProfileResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Profile updated successfully"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          $ref: '#/components/schemas/User'
+
+    ChangePasswordResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Password changed successfully"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: object
+          properties: {}
+
+    ResendVerificationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Mail has been sent to your mail ID"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: object
+          properties: {}
+
+    AssignRoleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Role changed for the user"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: object
+          properties: {}
+# ----------------------------------------------------------------------
+    Chat:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "649e795264e7dba29b726936"  # Example chat ID
+        name:
+          type: string
+          example: "Project Discussion"
+        isGroupChat:
+          type: boolean
+          example: false
+        lastMessage:
+          $ref: '#/components/schemas/ChatMessage'
+        participants:
+          type: array
+          $ref: '#/components/schemas/User'  # Reusing User schema
+        admin:
+          type: string
+          format: objectId
+          example: "649e795264e7dba29b726938"  # Example admin ID
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-06-30T06:42:26.163Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2023-06-30T06:42:26.247Z"
+
+    ChatSchemaForGetAllChats:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "649e795264e7dba29b726936"  # Example chat ID
+        name:
+          type: string
+          example: "Project Discussion"
+        isGroupChat:
+          type: boolean
+          example: false
+        participants:
+          type: array
+          $ref: '#/components/schemas/User'  # Reusing User schema
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-06-30T06:42:26.163Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2023-06-30T06:42:26.247Z"
+
+
+    GetAllChatsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "User chats fetched successfully!"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatSchemaForGetAllChats'
+
+    UserBasicInfo:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "669798f02904c7849408f204"
+        avatar:
+          type: object
+          properties:
+            url:
+              type: string
+              example: "https://via.placeholder.com/200x200.png"
+            localPath:
+              type: string
+              example: ""
+        username:
+          type: string
+          example: "vpadal"
+        email:
+          type: string
+          example: "vpadal04@gmail.com"
+        role:
+          type: string
+          example: "USER"
+
+    SearchAvailableUsersResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Users fetched successfully"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserBasicInfo'
+
+    SearchUsersResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Users fetched successfully"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserBasicInfo'
+
+    SendInvitationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Invitation sent successfully"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: object
+          properties: {}
+
+    RespondToInvitationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Invitation responded successfully"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: object
+          properties: {}
+
+    InvitationStatus:
+      type: object
+      properties:
+        from:
+          type: string
+          example: "669798f02904c7849408f204"  # Example user ID
+        status:
+          type: string
+          example: "pending"
+
+    GetUsersByInvitationStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Users with status pending fetched successfully"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: object
+          properties:
+            usersByStatus:
+              type: array
+              items:
+                $ref: '#/components/schemas/InvitationStatus'
+
+    GetMyInvitationsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Invitations fetched successfully"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserBasicInfo'
+    
+    CreateOrGetChatResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Chat retrieved successfully"
+        statusCode:
+          type: number
+          example: 201
+        data:
+          $ref: '#/components/schemas/Chat'
+
+    SearchMessagesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Messages fetched successfully"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+
+    DeleteChatResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Chat deleted successfully"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: object
+          properties: {}
+
+
+
+
+
+
+
+
+
+
+# ----------------------------------------------------------------------
+    ChatMessage:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "649e795264e7dba29b726939"  # Example message ID
+        sender:
+          $ref: '#/components/schemas/UserBasicInfo'  # Reusing User schema
+        content:
+          type: string
+          example: "Hello, team! Let's discuss the project."
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+                example: "https://example.com/image.png"
+              localPath:
+                type: string
+                example: "/local/path/to/image.png"
+        chat:
+          type: string
+          format: objectId
+          example: "649e795264e7dba29b726936"  # Example chat ID
+        readBy:
+          type: array
+          items:
+            type: string
+            example: "649e795264e7dba29b726936"  # Example user ID who read the message
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-06-30T06:42:26.163Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2023-06-30T06:42:26.247Z"
+
+    GetMessagesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Messages fetched successfully"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+
+    SendMessageResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Message saved successfully"
+        statusCode:
+          type: number
+          example: 201
+        data:
+          $ref: '#/components/schemas/ChatMessage'
+
+    DeleteMessageResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Message deleted successfully"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          $ref: '#/components/schemas/ChatMessage'
+
+    MarkMessageAsReadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Message marked as read successfully"
+        statusCode:
+          type: number
+          example: 200
+        data:
+          $ref: '#/components/schemas/ChatMessage'

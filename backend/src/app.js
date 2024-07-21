@@ -2,13 +2,17 @@ import cookieParser from "cookie-parser";
 import cors from "cors"
 import express from "express"
 import { rateLimit } from "express-rate-limit";
-import session from "express-session";
+// import session from "express-session";
 
 import { createServer } from "http";
-import path from "path";
-import requestIp from "request-ip";
 import { fileURLToPath } from "url";
+import path from "path";
+import fs from "fs";
+import YAML from "yaml";
+
+import requestIp from "request-ip";
 import { Server } from "socket.io";
+import swaggerUi from "swagger-ui-express";
 
 import { DB_NAME } from "./constants.js";
 import { dbInstance } from "./db/index.js";
@@ -17,11 +21,17 @@ import { initializeSocketIO } from "./socket/index.js"; // yet to complete imple
 import { ApiError } from "./utils/ApiError.js"
 import { ApiResponse } from "./utils/ApiResponse.js"
 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// read somewhere that swagger should be initialized here
-// TODO
+const file = fs.readFileSync(path.resolve(__dirname, "./swagger.yaml"), "utf8");
+const swaggerDocument = YAML.parse(
+  file?.replace(
+    "url: ${{server}}",
+    `url: ${process.env.BACKEND_HOST_URL || "http://localhost:8081"}/api/v1`
+  )
+);
 
 const app = express();
 
@@ -122,6 +132,20 @@ app.use("/api/v1/messages", messageRouter);
 
 
 initializeSocketIO(io);
+
+
+// API DOCS
+app.use(
+  "/",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument, {
+    swaggerOptions: {
+      docExpansion: "none", // to keep all the sections collapsed by default
+    },
+    customSiteTitle: "One-to-one Chat Application API Docs"
+  })
+);
+
 
 app.use(errorHandler);
 
