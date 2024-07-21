@@ -92,7 +92,8 @@ router
     verifyJWT,
     verifyPermission([UserRolesEnum.ADMIN]),  // good one
     validate_params(mongoIdPathVariableSchema("userId")),
-    validate_body(userAssignRoleSchema)
+    validate_body(userAssignRoleSchema),
+    assignRole
   )
 
 

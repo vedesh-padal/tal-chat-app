@@ -230,7 +230,7 @@ const deleteMessage = asyncHandler(async (req, res) => {
 
   // logic to emit socket event about the message deleted to the other participants of this chat
   chat.participants.forEach((participantObjectId) => {
-    if (participantObjectId.toString() ==- req.user._id.toString()) 
+    if (participantObjectId.toString() === req.user._id.toString()) 
       return;
   
     emitSocketEvent(

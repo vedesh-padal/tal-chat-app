@@ -4,7 +4,9 @@ const chatSchema = new Schema(
   {
     name: {
       type: String,
-      required: true
+      required: true,
+      trim: true,
+      maxLength: 100, // example: limit chat name length
     },
     // including this as it may be useful in future
     isGroupChat: {
@@ -18,7 +20,8 @@ const chatSchema = new Schema(
     participants: [
       {
         type: Schema.Types.ObjectId,
-        ref: "User"
+        ref: "User",
+        required: true,
       }
     ],
     admin: {

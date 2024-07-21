@@ -132,6 +132,7 @@ const searchAllAvailableUsers = asyncHandler(async (req, res) => {
         avatar: 1,
         username: 1,
         email: 1,
+        role: 1,
       },
     },
   ]);
@@ -347,7 +348,8 @@ const getMyInvitations = asyncHandler(async (req, res) => {
         avatar: sender.avatar,
         email: sender.email,
         username: sender.username,
-        role: sender.role
+        role: sender.role,
+        invitationStatus: invitation.status,
       };
     })
   );
@@ -404,6 +406,7 @@ const createOrGetAOneOnOneChat = asyncHandler(async (req, res) => {
     ...chatCommonAggregation(),
   ]);
 
+  console.log(chat);
 
   if (chat.length)  {
     // if we find the chat, that means user already has created a chat with that receiver
@@ -526,20 +529,20 @@ const getAllChats = asyncHandler(async (req, res) => {
 
 
 const searchMessagesInChat = asyncHandler(async (req, res) => {
-  const { chatId, query } = req.query;
+  const { chatId } = req.params;
+  const { query } = req.query;
 
-  if (!chatId || !query)  {
+  if (!chatId || !query) {
     throw new ApiError(400, "Chat ID and search query are required");
   }
 
-  // find messages that match the query in the sepcified chat
+  // find messages that match the query in the specified chat
   const messages = await ChatMessage.find({
-    chat: chatId,
-    content: { $regex: query, $options: 'i' }
+    chat: new mongoose.Types.ObjectId(chatId),
+    content: { $regex: query },
   })
-    .populate("sender", "username avatar email")
-    .sort({ createdAt: -1 });
-
+    .sort({ createdAt: -1 })
+    .populate("sender", "username avatar email role");
 
   if (!messages.length) {
     return res
@@ -550,7 +553,6 @@ const searchMessagesInChat = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, messages, "Messages fetched successfully"));
-
 });
 
 

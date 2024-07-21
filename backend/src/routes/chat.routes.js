@@ -45,7 +45,7 @@ router
   .get(getUsersByStatus);
 
 router
-  .route("/invitations/all")
+  .route("/all-invitations")
   .get(getMyInvitations);
 
 
@@ -58,7 +58,7 @@ router
 
 
 router
-  .route("/searchMessages")
+  .route("/searchMessages/:chatId/search")
   .get(searchMessagesInChat);  // uses query parameters to pass chatId and search query
 
 

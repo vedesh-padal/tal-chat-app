@@ -5,10 +5,14 @@ const chatMessageSchema = new Schema(
   {
     sender: {
       type: Schema.Types.ObjectId,
-      ref: "User"
+      ref: "User",
+      required: true,
     },
     content: {
-      type: String
+      type: String,
+      required: true,
+      trim: true,
+      maxLength: 500, // example: limit message length
     },
     attachments: {
       type: [
@@ -22,6 +26,7 @@ const chatMessageSchema = new Schema(
     chat: {
       type: Schema.Types.ObjectId,
       ref: "Chat",
+      required: true,
     },
     readBy: [
       {
