@@ -198,7 +198,7 @@ const sendInvitation = asyncHandler(async (req, res) => {
 
   // Create new invitation
   await User.findByIdAndUpdate(receiverId, {
-    $push: { invitations: { from: req.user._id } }
+    $push: { invitations: { from: req.user._id, status: InvitationStatusEnum.PENDING } }
   });
 
   // save the user with updated invitatiosn
