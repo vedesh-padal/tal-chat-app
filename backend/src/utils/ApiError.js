@@ -13,7 +13,7 @@ class ApiError extends Error {
   * @param {string} stack
   */
 
-  constructor(
+    constructor(
     statusCode,
     message = "Something went wrong",
     errors = [],
