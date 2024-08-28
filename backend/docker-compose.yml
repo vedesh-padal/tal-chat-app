@@ -15,21 +15,21 @@ services:
     ports:
       - 8080:8080
     environment:
-        PORT: 8080
-        MONGODB_URI: mongodb://mongo_db:27017/my_database
-        NODE_ENV: development
+      PORT: ${PORT}
+      MONGODB_URI: ${MONGODB_URI}
+      NODE_ENV: ${NODE_ENV}
 
-        CORS_ORIGIN: http://localhost:3000
-        BACKEND_HOST_URL: http://localhost:8081
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      BACKEND_HOST_URL: ${BACKEND_HOST_URL}
 
-        ACCESS_TOKEN_SECRET: ved$12@Padal
-        ACCESS_TOKEN_EXPIRY: 1d
-        REFRESH_TOKEN_SECRET: Ved@789
-        REFRESH_TOKEN_EXPIRY: 10d
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+      ACCESS_TOKEN_EXPIRY: ${ACCESS_TOKEN_EXPIRY}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      REFRESH_TOKEN_EXPIRY: ${REFRESH_TOKEN_EXPIRY}
 
-        RESEND_API_KEY: re_2N4k1p8H_GZbPpSLDchhCyHs7LcMNtzrT
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      FORGOT_PASSWORD_REDIRECT_URL: ${FORGOT_PASSWORD_REDIRECT_URL}
 
-        FORGOT_PASSWORD_REDIRECT_URL: http://localhost:3000/forgot-password
     
     depends_on:
      - mongo_db
