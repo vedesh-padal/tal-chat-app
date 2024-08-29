@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Use an official Node.js runtime as a parent image
 FROM node:18-alpine
 
@@ -17,4 +18,18 @@ COPY . .
 EXPOSE 8080
 
 # Command to run the app
+=======
+FROM node:18-alpine
+
+WORKDIR /usr/src/talchat-backend
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+EXPOSE 8080
+
+>>>>>>> dockerizing-1
 CMD ["npm", "start"]

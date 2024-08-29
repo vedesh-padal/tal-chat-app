@@ -1,29 +1,27 @@
-version: '3.8'
+version: '3.9'
 
 services:
-  app:
+  mongo_db:
+      container_name: db_container
+      image: mongo:latest
+      restart: always
+      ports:
+       - 2717:27017
+      volumes: 
+        - mongo_db:/data/db
+  
+  api:
     build: .
     container_name: chat-app-backend
     restart: always
     ports:
-      - "8080:8080"
+      - "5777:8080"
     env_file:
       - ./.env
-
     depends_on:
-      - mongo
+     - mongo_db
     volumes:
       - .:/app
 
-  mongo:
-    image: mongo:4.4
-    container_name: chat-app-mongo
-    restart: always
-    volumes:
-      - mongo-data:/data/db
-    ports:
-      - "27017:27017"
-
 volumes:
-  mongo-data:
-    driver: local
+   mongo_db: {}
