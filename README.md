@@ -14,6 +14,9 @@
 
   4. **📱 Push Notifications:** Keeps users informed about new messages and updates even when they are not actively using the app.  [ yet to be implemented ]
    
+## System Design and Architecture:
+![System Design and Architecture](https://github.com/user-attachments/assets/982bdf3b-a432-4602-8552-09ca0638522b)
+  
 ## Some other features include:
 - **Connect**: Ability to send invitation, accept or reject inorder to establish chat.
 - **Chat**: Chat with connected users.
